@@ -2,11 +2,11 @@
 
 High-level map of the homelab. Three repos own everything:
 
-| Repo | Role |
-|------|------|
-| [`home-dc-proxmox`](../home-dc-proxmox) | Bare-metal Proxmox VE + Ceph cluster |
-| [`home-dc-kubernetes`](../home-dc-kubernetes) | Talos Kubernetes cluster and GitOps workloads |
-| [`home-dc-docker`](../home-dc-docker) | Host-level Docker Compose services on `morpheus` |
+| Repo | Remote | Role |
+|------|--------|------|
+| [`home-dc-proxmox`](../home-dc-proxmox) | [github.com/fabricesemti80/home-dc-proxmox](https://github.com/fabricesemti80/home-dc-proxmox) | Bare-metal Proxmox VE + Ceph cluster |
+| [`home-dc-kubernetes`](../home-dc-kubernetes) | [github.com/fabricesemti80/home-dc-kubernetes](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos Kubernetes cluster and GitOps workloads |
+| [`home-dc-docker`](../home-dc-docker) | [github.com/fabricesemti80/home-dc-docker](https://github.com/fabricesemti80/home-dc-docker) | Host-level Docker Compose services on `morpheus` |
 
 <!-- ponytail: intentionally excludes secret values, token strings, and password hashes; see each repo's local/runtime files -->
 
