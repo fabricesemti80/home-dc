@@ -9,17 +9,21 @@ Requires:
 from pathlib import Path
 
 from diagrams import Diagram, Cluster, Edge
+from diagrams.custom import Custom
 from diagrams.onprem.network import Internet, Envoy, Traefik
 from diagrams.generic.network import Firewall, Router
-from diagrams.k8s.compute import Deploy
-from diagrams.k8s.ecosystem import ExternalDns
-from diagrams.k8s.storage import PVC
 from diagrams.onprem.container import Docker
 from diagrams.onprem.compute import Server
 from diagrams.onprem.storage import Ceph
 from diagrams.generic.storage import Storage
 
 OUT = Path(__file__).parent / "architecture.png"
+ICON_DIR = Path(__file__).parent / "icons"
+
+
+def icon(name: str) -> str:
+    return str(ICON_DIR / name)
+
 
 graph_attr = {
     "pad": "0.5",
@@ -40,7 +44,6 @@ with Diagram(
     internet = Internet("Internet")
     cloudflare = Firewall("Cloudflare\nZero Trust / DNS / Tunnels")
     unifi = Router("UniFi DNS\nkrapulax.home")
-    k8s_gw = Server("k8s-gateway\n10.0.40.153")
 
     with Cluster("Docker Host — morpheus (10.0.40.19)"):
         traefik = Traefik("Traefik")
@@ -50,34 +53,41 @@ with Diagram(
         )
 
     with Cluster("Proxmox VE Cluster"):
-        pve0 = Server("pve-0\n10.0.40.10")
-        pve1 = Server("pve-1\n10.0.40.11")
-        pve2 = Server("pve-2\n10.0.40.12")
+        pve0 = Custom("pve-0\n10.0.40.10", icon("proxmox.png"))
+        pve1 = Custom("pve-1\n10.0.40.11", icon("proxmox.png"))
+        pve2 = Custom("pve-2\n10.0.40.12", icon("proxmox.png"))
 
     with Cluster("Kubernetes — Talos Cluster"):
         with Cluster("Control Plane"):
-            cp0 = Deploy("k8s-ctrl-01\n10.0.40.90")
-            cp1 = Deploy("k8s-ctrl-02\n10.0.40.91")
-            cp2 = Deploy("k8s-ctrl-03\n10.0.40.92")
+            cp0 = Custom("k8s-ctrl-01\n10.0.40.90", icon("kubernetes.png"))
+            cp1 = Custom("k8s-ctrl-02\n10.0.40.91", icon("kubernetes.png"))
+            cp2 = Custom("k8s-ctrl-03\n10.0.40.92", icon("kubernetes.png"))
 
+        k8s_gw = Server("k8s-gateway\n10.0.40.153")
         argo = Server("Argo CD")
         cilium = Server("Cilium")
         coredns = Server("CoreDNS")
-        ext_dns = ExternalDns("external-dns")
+        ext_dns = Server("external-dns")
         envoy_int = Envoy("envoy-internal\n10.0.40.102")
         envoy_ext = Envoy("envoy-external\n10.0.40.103")
 
         with Cluster("Workloads"):
-            media = Server("Media Stack")
-            prod = Server("Productivity")
-            mon = Server("Monitoring")
-            web = Server("Web")
+            media = Custom("Media Stack", icon("jellyfin.png"))
+            prod = Custom("Productivity", icon("n8n.png"))
+            mon = Custom("Monitoring", icon("grafana.png"))
+            web = Custom("Web", icon("glance.png"))
 
-    with Cluster("Storage"):
-        ceph = Ceph("Ceph Cluster\n10.0.70.0/24")
-        cephfs = PVC("CephFS PVCs")
-        nfs = Storage("NFS 10.0.40.2:/media\nmedia-library-pvc")
+        with Cluster("Persistent Volumes"):
+            cephfs = Server("CephFS PVCs")
+            nfs_pvc = Server("NFS media-library-pvc")
 
+    with Cluster("External Storage"):
+        ceph0 = Ceph("Ceph OSD 1\n10.0.70.10")
+        ceph1 = Ceph("Ceph OSD 2\n10.0.70.11")
+        ceph2 = Ceph("Ceph OSD 3\n10.0.70.12")
+        nfs = Storage("NFS Server\n10.0.40.2:/media")
+
+    # Public / private ingress
     internet >> cloudflare
     cloudflare >> Edge(label="trinity tunnel") >> traefik
     cloudflare >> Edge(label="kubernetes tunnel") >> envoy_ext
@@ -110,20 +120,26 @@ with Diagram(
     coredns >> web
     ext_dns >> Edge(label="writes records") >> cloudflare
 
+    # Storage relationships
     media >> cephfs
-    media >> nfs
+    media >> nfs_pvc
     prod >> cephfs
     mon >> cephfs
     web >> cephfs
-    cephfs >> ceph
 
-    pve0 >> Edge(label="Ceph OSD") >> ceph
-    pve1 >> ceph
-    pve2 >> ceph
+    cephfs >> ceph0
+    cephfs >> ceph1
+    cephfs >> ceph2
+    nfs_pvc >> nfs
+
+    # Proxmox hosts everything, including Ceph OSDs
+    pve0 >> Edge(label="Ceph OSD") >> ceph0
+    pve1 >> Edge(label="Ceph OSD") >> ceph1
+    pve2 >> Edge(label="Ceph OSD") >> ceph2
 
     pve0 >> Edge(label="hosts VM") >> cp0
-    pve1 >> cp1
-    pve2 >> cp2
+    pve1 >> Edge(label="hosts VM") >> cp1
+    pve2 >> Edge(label="hosts VM") >> cp2
 
     pve0 >> Edge(label="hosts VM") >> docker_apps
     traefik >> docker_apps
