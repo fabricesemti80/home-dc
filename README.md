@@ -14,79 +14,9 @@ High-level map of the homelab. Three repos own everything:
 
 ## Architecture Diagram
 
-```mermaid
-flowchart TB
-    %% class definitions for cloud-style coloring
-    classDef internet fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b;
-    classDef cloudflare fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100;
-    classDef network fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#6a1b9a;
-    classDef proxmox fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#b71c1c;
-    classDef k8s fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#1565c0;
-    classDef docker fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#00838f;
-    classDef storage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32;
-    classDef apps fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#f57f17;
+![Architecture Diagram](assets/architecture.png)
 
-    internet([fa:fa-globe Internet]):::internet
-    cf([fa:fa-cloud Cloudflare<br/>Zero Trust / DNS / Tunnels]):::cloudflare
-    unifi([fa:fa-wifi UniFi DNS<br/>krapulax.home]):::network
-    k8s_gw([fa:fa-server k8s-gateway<br/>10.0.40.153]):::network
-
-    subgraph docker["🐳 Docker Host — morpheus (10.0.40.19)"]
-        traefik([fa:fa-random Traefik]):::docker
-        docker_apps([fa:fa-cubes Arcane / Portainer / Kestra<br/>Uptime Kuma / Whoami / Beszel]):::docker
-    end
-
-    subgraph k8s["☸ Kubernetes — Talos Cluster"]
-        cp([fa:fa-server k8s-ctrl-01/02/03<br/>10.0.40.90–92]):::k8s
-        argo([fa:fa-code-branch Argo CD]):::k8s
-        cni([fa:fa-project-diagram Cilium]):::k8s
-        dns([fa:fa-globe CoreDNS]):::k8s
-        ext_dns([fa:fa-sync external-dns]):::k8s
-        envoy_int([fa:fa-door-open envoy-internal<br/>10.0.40.102]):::network
-        envoy_ext([fa:fa-door-open envoy-external<br/>10.0.40.103]):::network
-
-        subgraph apps["🚀 Workloads"]
-            media([fa:fa-film Media Stack]):::apps
-            prod([fa:fa-briefcase Productivity]):::apps
-            mon([fa:fa-chart-line Monitoring]):::apps
-            web([fa:fa-window-maximize Web]):::apps
-        end
-    end
-
-    subgraph storage["🗄 Storage"]
-        ceph([fa:fa-database Ceph Cluster<br/>10.0.70.0/24]):::storage
-        cephfs([fa:fa-folder-open CephFS PVCs]):::storage
-        nfs([fa:fa-hdd NFS 10.0.40.2:/media<br/>media-library-pvc]):::storage
-    end
-
-    subgraph proxmox["🖥 Proxmox VE Cluster"]
-        pve([fa:fa-server pve-0 / pve-1 / pve-2<br/>VIP 10.0.40.15]):::proxmox
-    end
-
-    internet --> cf
-    cf -->|trinity tunnel| traefik
-    cf -->|kubernetes tunnel| envoy_ext
-    cf -->|public DNS| k8s_gw
-    cf -->|Access policies| envoy_ext
-
-    unifi -->|internal DNS| k8s_gw
-    k8s_gw --> envoy_int
-    envoy_int --> apps
-    envoy_ext --> apps
-    traefik --> docker_apps
-
-    argo --> apps
-    cni --> apps
-    dns --> apps
-    ext_dns -->|writes records| cf
-
-    apps --> cephfs
-    media --> nfs
-    cephfs --> ceph
-    pve -->|hosts| ceph
-    pve -->|hosts VMs| k8s
-    pve -->|hosts VM| docker
-```
+<!-- ponytail: regenerate with `python assets/generate-diagram.py` after `pip install diagrams` and graphviz -->
 
 ---
 
