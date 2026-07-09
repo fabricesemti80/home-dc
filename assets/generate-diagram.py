@@ -52,12 +52,12 @@ with Diagram(
                 "docker-svc-0\n10.0.40.54\n"
                 "Portainer / Docktail / Beszel / Apps"
             )
+
+        with Cluster("Physical Hosts"):
             docker1 = Docker(
                 "docker-svc-1\n10.0.40.53\n"
                 "Portainer Agent / Beszel Agent"
             )
-
-        with Cluster("Physical Hosts"):
             physical = Server("Future / edge nodes")
 
     with Cluster("Proxmox VE Cluster"):

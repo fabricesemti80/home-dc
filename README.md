@@ -38,7 +38,7 @@ High-level map of the homelab. Core repos:
 | NFS server | `10.0.40.2` |
 | Proxmox Backup Server (`proxmox-pbs-0`) | `10.0.40.16` |
 | Docker service host (`docker-svc-0`) | `10.0.40.54` |
-| Docker service host (`docker-svc-1`) | `10.0.40.53` |
+| Physical Docker service host (`docker-svc-1`) | `10.0.40.53` |
 | Legacy Docker host (`morpheus`) | `10.0.40.19` |
 | Kubernetes control-plane nodes | `10.0.40.90` – `10.0.40.92` |
 | Kubernetes API VIP | `10.0.40.101` |
