@@ -46,16 +46,19 @@ with Diagram(
     unifi = Router("UniFi DNS\nkrapulax.home")
 
     with Cluster("Service Hosts — home-dc-service-hosts"):
-        pbs = Server("proxmox-pbs-0\n10.0.40.16")
-        docker0 = Docker(
-            "docker-svc-0\n10.0.40.54\n"
-            "Portainer / Docktail / Beszel / Apps"
-        )
-        docker1 = Docker(
-            "docker-svc-1\n10.0.40.53\n"
-            "Portainer Agent / Beszel Agent"
-        )
-        physical = Server("Physical service hosts\nfuture/edge nodes")
+        with Cluster("Proxmox VMs / LXCs"):
+            pbs = Server("proxmox-pbs-0\n10.0.40.16")
+            docker0 = Docker(
+                "docker-svc-0\n10.0.40.54\n"
+                "Portainer / Docktail / Beszel / Apps"
+            )
+            docker1 = Docker(
+                "docker-svc-1\n10.0.40.53\n"
+                "Portainer Agent / Beszel Agent"
+            )
+
+        with Cluster("Physical Hosts"):
+            physical = Server("Future / edge nodes")
 
     with Cluster("Proxmox VE Cluster"):
         pve0 = Custom("pve-0\n10.0.40.10", icon("proxmox.png"))
