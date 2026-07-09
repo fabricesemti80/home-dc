@@ -7,7 +7,6 @@ High-level map of the homelab. Core repos:
 | [`home-dc-proxmox`](../home-dc-proxmox) | [github.com/fabricesemti80/home-dc-proxmox](https://github.com/fabricesemti80/home-dc-proxmox) | Bare-metal Proxmox VE + Ceph cluster |
 | [`home-dc-kubernetes`](../home-dc-kubernetes) | [github.com/fabricesemti80/home-dc-kubernetes](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos Kubernetes cluster and GitOps workloads |
 | [`home-dc-service-hosts`](../home-dc-service-hosts) | [github.com/fabricesemti80/home-dc-service-hosts](https://github.com/fabricesemti80/home-dc-service-hosts) | Standalone service hosts: Docker VMs, PBS LXC, physical hosts |
-| [`home-dc-docker`](../home-dc-docker) | [github.com/fabricesemti80/home-dc-docker](https://github.com/fabricesemti80/home-dc-docker) | Legacy Docker host stack on `morpheus` |
 
 <!-- ponytail: intentionally excludes secret values, token strings, and password hashes; see each repo's local/runtime files -->
 
