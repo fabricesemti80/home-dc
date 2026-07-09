@@ -1,12 +1,13 @@
 # Home DC Overview
 
-High-level map of the homelab. Three repos own everything:
+High-level map of the homelab. Core repos:
 
 | Repo | Remote | Role |
 |------|--------|------|
 | [`home-dc-proxmox`](../home-dc-proxmox) | [github.com/fabricesemti80/home-dc-proxmox](https://github.com/fabricesemti80/home-dc-proxmox) | Bare-metal Proxmox VE + Ceph cluster |
 | [`home-dc-kubernetes`](../home-dc-kubernetes) | [github.com/fabricesemti80/home-dc-kubernetes](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos Kubernetes cluster and GitOps workloads |
-| [`home-dc-docker`](../home-dc-docker) | [github.com/fabricesemti80/home-dc-docker](https://github.com/fabricesemti80/home-dc-docker) | Host-level Docker Compose services on `morpheus` |
+| [`home-dc-service-hosts`](../home-dc-service-hosts) | [github.com/fabricesemti80/home-dc-service-hosts](https://github.com/fabricesemti80/home-dc-service-hosts) | Standalone service hosts: Docker VMs, PBS LXC, physical hosts |
+| [`home-dc-docker`](../home-dc-docker) | [github.com/fabricesemti80/home-dc-docker](https://github.com/fabricesemti80/home-dc-docker) | Legacy Docker host stack on `morpheus` |
 
 <!-- ponytail: intentionally excludes secret values, token strings, and password hashes; see each repo's local/runtime files -->
 
@@ -36,7 +37,10 @@ High-level map of the homelab. Three repos own everything:
 | Proxmox nodes | `10.0.40.10` – `10.0.40.12` |
 | Proxmox VIP (Keepalived) | `10.0.40.15` |
 | NFS server | `10.0.40.2` |
-| Docker host (`morpheus`) | `10.0.40.19` |
+| Proxmox Backup Server (`proxmox-pbs-0`) | `10.0.40.16` |
+| Docker service host (`docker-svc-0`) | `10.0.40.54` |
+| Docker service host (`docker-svc-1`) | `10.0.40.53` |
+| Legacy Docker host (`morpheus`) | `10.0.40.19` |
 | Kubernetes control-plane nodes | `10.0.40.90` – `10.0.40.92` |
 | Kubernetes API VIP | `10.0.40.101` |
 | Internal gateway (`envoy-internal`) | `10.0.40.102` |
@@ -117,32 +121,35 @@ Managed with Ansible + `Taskfile.yml`.
 
 ---
 
-## Layer 3: Docker Host (`home-dc-docker`)
+## Layer 3: Service Hosts (`home-dc-service-hosts`)
 
-Plain Docker Compose stack on `morpheus` (`10.0.40.19`) for services kept outside Kubernetes.
+Standalone VMs, LXCs, and physical hosts for services kept outside Kubernetes.
+Docker stacks are Portainer-managed from GitOps compose files where appropriate.
 
 ### Services
 
 | Service | Role |
 |---------|------|
-| Traefik | Reverse proxy / ingress for Docker services |
-| cloudflared | Cloudflare Tunnel for Docker-host apps |
-| Arcane | Secret / password manager |
-| Beszel | Monitoring agent for Docker host |
+| Portainer | Docker management UI and GitOps stack deployment |
+| Docktail | Tailscale Service proxy for Docker-host apps |
+| Homepage | Internal service dashboard |
+| Beszel | Host and container monitoring |
 | Uptime Kuma | Uptime monitoring |
+| Vaultwarden | Password manager |
+| Technitium | DNS server |
 | Whoami | Test / debug endpoint |
-| Portainer | Docker management UI |
-| Kestra | Workflow automation (standalone, H2-backed) |
+| Proxmox Backup Server | Backup target, currently LXC-backed |
 
 ### Network / Access
 
-- Shared `homelab_proxy` network.
-- Services exposed via `*.krapulax.dev` through the `trinity` Cloudflare tunnel.
-- Some apps protected by Cloudflare Access; Beszel is bypassed.
+- Docker stacks share the `homelab_proxy` bridge network.
+- Public service access uses native Tailscale Services via Docktail, e.g. `*.koala-dominant.ts.net`.
+- Beszel agents on Docker hosts listen on TCP `45876`.
 
 ### Secrets
 
-- Rendered from Doppler `project-homelab / dev_homelab` into ignored `runtime/` files.
+- Local `.env` values are ignored by Git; `.env.example` documents required variables.
+- No secrets committed to Git.
 
 ---
 
@@ -153,7 +160,7 @@ Plain Docker Compose stack on `morpheus` (`10.0.40.19`) for services kept outsid
 | `infra/terraform_proxmox` | `home-dc-kubernetes` | Proxmox VMs for Talos and optional management VM |
 | `infra/terraform_cloudflare` | `home-dc-kubernetes` | Kubernetes tunnel, DNS, Access apps/policies |
 | `infra/terraform_localdns` | `home-dc-kubernetes` | UniFi local DNS records for `*.krapulax.home` |
-| `terraform/cloudflare` | `home-dc-docker` | Docker-host tunnel, DNS, Access apps |
+| `terraform/` | `home-dc-service-hosts` | Standalone service VMs/LXCs and Tailscale services |
 
 ---
 
@@ -177,12 +184,12 @@ task apps:bootstrap
 task verify:cluster
 ```
 
-### Docker repo
+### Service-hosts repo
 
 ```bash
-task stack:render
-task stack:config
-task stack:deploy
+task tf:plan
+task tf:apply
+task ansible:apply
 ```
 
 ---
@@ -190,6 +197,5 @@ task stack:deploy
 ## Notes / Simplifications
 
 - The Kubernetes cluster runs control-plane-only for current workloads; workers are retained as rollback capacity.
-- Kestra runs standalone with H2; move to Postgres when workflow durability matters.
-- Docker-host admin tools are still public via Cloudflare; likely next hardening step is Tailscale-only access.
+- Legacy `home-dc-docker` still exists for `morpheus`; active service-host work is in `home-dc-service-hosts`.
 - Management VM `deep-thought-01` is defined but disabled by default.

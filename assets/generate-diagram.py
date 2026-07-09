@@ -10,7 +10,7 @@ from pathlib import Path
 
 from diagrams import Diagram, Cluster, Edge
 from diagrams.custom import Custom
-from diagrams.onprem.network import Internet, Envoy, Traefik
+from diagrams.onprem.network import Internet, Envoy
 from diagrams.generic.network import Firewall, Router
 from diagrams.onprem.container import Docker
 from diagrams.onprem.compute import Server
@@ -45,12 +45,17 @@ with Diagram(
     cloudflare = Firewall("Cloudflare\nZero Trust / DNS / Tunnels")
     unifi = Router("UniFi DNS\nkrapulax.home")
 
-    with Cluster("Docker Host — morpheus (10.0.40.19)"):
-        traefik = Traefik("Traefik")
-        docker_apps = Docker(
-            "Arcane / Portainer / Kestra\n"
-            "Uptime Kuma / Whoami / Beszel"
+    with Cluster("Service Hosts — home-dc-service-hosts"):
+        pbs = Server("proxmox-pbs-0\n10.0.40.16")
+        docker0 = Docker(
+            "docker-svc-0\n10.0.40.54\n"
+            "Portainer / Docktail / Beszel / Apps"
         )
+        docker1 = Docker(
+            "docker-svc-1\n10.0.40.53\n"
+            "Portainer Agent / Beszel Agent"
+        )
+        physical = Server("Physical service hosts\nfuture/edge nodes")
 
     with Cluster("Proxmox VE Cluster"):
         pve0 = Custom("pve-0\n10.0.40.10", icon("proxmox.png"))
@@ -89,7 +94,6 @@ with Diagram(
 
     # Public / private ingress
     internet >> cloudflare
-    cloudflare >> Edge(label="trinity tunnel") >> traefik
     cloudflare >> Edge(label="kubernetes tunnel") >> envoy_ext
     cloudflare >> Edge(label="public DNS") >> k8s_gw
     cloudflare >> Edge(label="Access policies") >> envoy_ext
@@ -141,5 +145,11 @@ with Diagram(
     pve1 >> Edge(label="hosts VM") >> cp1
     pve2 >> Edge(label="hosts VM") >> cp2
 
-    pve0 >> Edge(label="hosts VM") >> docker_apps
-    traefik >> docker_apps
+    pve0 >> Edge(label="hosts LXC") >> pbs
+    pve1 >> Edge(label="hosts VM") >> docker0
+    pve2 >> Edge(label="hosts VM") >> docker1
+
+    internet >> Edge(label="Tailscale Services") >> docker0
+    docker0 >> Edge(label="Portainer agent") >> docker1
+    docker0 >> Edge(label="Beszel TCP 45876") >> docker1
+    docker0 >> Edge(label="future management") >> physical
