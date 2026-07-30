@@ -5,8 +5,7 @@ High-level map of the homelab. Core repos:
 | Repo | Remote | Role |
 |------|--------|------|
 | [`home-dc-proxmox`](../home-dc-proxmox) | [github.com/fabricesemti80/home-dc-proxmox](https://github.com/fabricesemti80/home-dc-proxmox) | Bare-metal Proxmox VE + Ceph cluster |
-| [`home-dc-kubernetes`](../home-dc-kubernetes) | [github.com/fabricesemti80/home-dc-kubernetes](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos Kubernetes cluster and GitOps workloads |
-| [`home-dc-service-hosts`](../home-dc-service-hosts) | [github.com/fabricesemti80/home-dc-service-hosts](https://github.com/fabricesemti80/home-dc-service-hosts) | Standalone service hosts: Docker VMs, PBS LXC, physical hosts |
+| [`home-dc-kubernetes`](../home-dc-kubernetes) | [github.com/fabricesemti80/home-dc-kubernetes](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos Kubernetes clusters, GitOps workloads, Cloudflare, and local DNS |
 
 <!-- ponytail: intentionally excludes secret values, token strings, and password hashes; see each repo's local/runtime files -->
 
@@ -37,13 +36,10 @@ High-level map of the homelab. Core repos:
 | Proxmox VIP (Keepalived) | `10.0.40.15` |
 | NFS server | `10.0.40.2` |
 | Proxmox Backup Server (`proxmox-pbs-0`) | `10.0.40.16` |
-| Docker service host (`docker-svc-0`) | `10.0.40.54` |
-| Physical Docker service host (`docker-svc-1`) | `10.0.40.53` |
-| Legacy Docker host (`morpheus`) | `10.0.40.19` |
-| Kubernetes control-plane nodes | `10.0.40.90` – `10.0.40.92` |
-| Kubernetes API VIP | `10.0.40.101` |
-| Internal gateway (`envoy-internal`) | `10.0.40.102` |
-| External gateway (`envoy-external`) | `10.0.40.103` |
+| App-cluster control-plane nodes | `10.0.40.90` – `10.0.40.92` |
+| App-cluster API VIP | `10.0.40.101` |
+| App-cluster internal gateway (`envoy-internal`) | `10.0.40.102` |
+| App-cluster external gateway (`envoy-external`) | `10.0.40.103` |
 | Kubernetes DNS gateway (`k8s-gateway`) | `10.0.40.153` |
 | Management VM (`deep-thought-01`) | `10.0.40.100` *(disabled by default)* |
 
@@ -64,25 +60,30 @@ Managed with Ansible + `Taskfile.yml`.
 
 ## Layer 2: Kubernetes (`home-dc-kubernetes`)
 
-### Cluster
+### Clusters
 
-- **Talos Linux** VMs running on Proxmox.
-- Active nodes: 3 control-plane nodes only (`k8s-ctrl-01` – `k8s-ctrl-03`).
+- **app-cluster**: Talos Linux VMs running on Proxmox.
+- **infra-cluster**: physical Talos nodes for baseline infrastructure services.
+- App-cluster active nodes: 3 control-plane nodes only (`k8s-ctrl-01` – `k8s-ctrl-03`).
 - Legacy worker VMs exist in Proxmox but are **powered off** and not in the active Talos inventory.
-- API endpoint uses a Talos VIP at `10.0.40.101`.
+- App-cluster API endpoint uses a Talos VIP at `10.0.40.101`.
 
 ### Networking
 
 - **Cilium** CNI in kube-proxy-free mode.
 - **CoreDNS** for in-cluster DNS.
-- **Envoy Gateway** (`envoy-internal` / `envoy-external`) exposes HTTPRoutes.
+- **Envoy Gateway** exposes HTTPRoutes in both clusters.
 - **k8s-gateway** at `10.0.40.153` provides split-horizon DNS for local clients.
 - **Cloudflare Tunnel** (`cloudflared`) brings public traffic in without opening ports.
 - **external-dns** publishes records to Cloudflare.
+- Public service records target cluster-specific endpoints:
+  - `external-apps.krapulax.dev`
+  - `external-infra.krapulax.dev`
 
 ### GitOps
 
-- **Argo CD** watches `fabricesemti80/home-dc-kubernetes` and reconciles apps under `kubernetes/apps/`.
+- **Argo CD** runs on `app-cluster`, watches `fabricesemti80/home-dc-kubernetes`, and reconciles both clusters.
+- Workloads are split under `kubernetes/apps/app-cluster/` and `kubernetes/apps/infra-cluster/`.
 - Bootstrap ordering in `bootstrap/helmfile.d/` installs Cilium, CoreDNS, Spegel, cert-manager, Argo CD, etc.
 
 ### Storage
@@ -96,7 +97,7 @@ Managed with Ansible + `Taskfile.yml`.
 |-----------|------|
 | `media` | jellyfin, jellyseerr, immich, prowlarr, qbittorrent, radarr, sonarr, sabnzbd, recyclarr, tdarr |
 | `productivity` | linkwarden, n8n, termix |
-| `monitoring` | kube-prometheus-stack (Prometheus + Grafana), beszel-agent |
+| `monitoring` | kube-prometheus-stack (Prometheus + Grafana), pulse, uptime-kuma |
 | `network` | cloudflare-dns, cloudflare-tunnel, envoy-gateway, k8s-gateway |
 | `web` | glance, homepage |
 | `argo-system` | argo-cd |
@@ -120,38 +121,6 @@ Managed with Ansible + `Taskfile.yml`.
 
 ---
 
-## Layer 3: Service Hosts (`home-dc-service-hosts`)
-
-Standalone VMs, LXCs, and physical hosts for services kept outside Kubernetes.
-Docker stacks are Portainer-managed from GitOps compose files where appropriate.
-
-### Services
-
-| Service | Role |
-|---------|------|
-| Portainer | Docker management UI and GitOps stack deployment |
-| Docktail | Tailscale Service proxy for Docker-host apps |
-| Homepage | Internal service dashboard |
-| Beszel | Host and container monitoring |
-| Uptime Kuma | Uptime monitoring |
-| Vaultwarden | Password manager |
-| Technitium | DNS server |
-| Whoami | Test / debug endpoint |
-| Proxmox Backup Server | Backup target, currently LXC-backed |
-
-### Network / Access
-
-- Docker stacks share the `homelab_proxy` bridge network.
-- Public service access uses native Tailscale Services via Docktail, e.g. `*.koala-dominant.ts.net`.
-- Beszel agents on Docker hosts listen on TCP `45876`.
-
-### Secrets
-
-- Local `.env` values are ignored by Git; `.env.example` documents required variables.
-- No secrets committed to Git.
-
----
-
 ## Terraform / OpenTofu Stacks
 
 | Stack | Repo | Purpose |
@@ -159,7 +128,6 @@ Docker stacks are Portainer-managed from GitOps compose files where appropriate.
 | `infra/terraform_proxmox` | `home-dc-kubernetes` | Proxmox VMs for Talos and optional management VM |
 | `infra/terraform_cloudflare` | `home-dc-kubernetes` | Kubernetes tunnel, DNS, Access apps/policies |
 | `infra/terraform_localdns` | `home-dc-kubernetes` | UniFi local DNS records for `*.krapulax.home` |
-| `terraform/` | `home-dc-service-hosts` | Standalone service VMs/LXCs and Tailscale services |
 
 ---
 
@@ -183,18 +151,8 @@ task apps:bootstrap
 task verify:cluster
 ```
 
-### Service-hosts repo
-
-```bash
-task tf:plan
-task tf:apply
-task ansible:apply
-```
-
----
-
 ## Notes / Simplifications
 
-- The Kubernetes cluster runs control-plane-only for current workloads; workers are retained as rollback capacity.
-- Legacy `home-dc-docker` still exists for `morpheus`; active service-host work is in `home-dc-service-hosts`.
+- The app-cluster runs control-plane-only for current workloads; workers are retained as rollback capacity.
+- Legacy Docker/service-host repositories are decommissioning; active application deployment is Kubernetes-first.
 - Management VM `deep-thought-01` is defined but disabled by default.
