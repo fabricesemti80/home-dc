@@ -26,6 +26,20 @@ This repository is the central, documentation-only view of the homelab. It does 
 - **Guest inventory:** OpenTofu declares smoke LXC 4019, PBS-target LXC 4020, controller VM 4090, and worker VMs 4095–4097. The configured inventory is not a health check; verify actual guest state in Proxmox and Kubernetes before operational changes.
 - **PBS status:** LXC 4020 is configured as a Debian container target. The OpenTofu root does not run the Community Scripts installer, install PBS, or configure its datastore. Do not treat this LXC as a functioning backup server until those steps are completed and verified.
 
+## Physical hardware
+
+The PVE host is a Dell Precision 7820 Tower (board `0G7W4R`, revision `A00`) on UEFI 5.14 firmware with Secure Boot disabled and TPM 2.0 present. It carries two Intel Xeon Gold 6152 processors (22 cores / 44 threads each, 88 logical CPUs) and 128 GB of memory as 8 × 16 GB Micron `18ASF2G72PDZ-2G6D1` at 2666 MT/s, leaving four DIMM sockets empty. Networking is the onboard Intel I219-LM on `nic0`. The full inventory — serials, partition layouts, PCIe link widths, boot path, and free expansion points — is recorded in [`home-dc-proxmox/docs/hardware.md`](https://github.com/fabricesemti80/home-dc-proxmox/blob/main/docs/hardware.md).
+
+| Device | Model | Capacity | Interface | Role |
+|---|---|---:|---|---|
+| NVMe | Samsung `MZVKW1T0HMLH-000L7` | 953.9 GiB | PCIe x4 @ 8 GT/s via Intel VMD | Boot device and sole member of ZFS pool `rpool` |
+| HDD | HGST `HDS724040ALE640` | 3.6 TiB (4 TB) | SATA 6 Gbps, 512e | Sole member of ZFS pool `slow` |
+| Optical | PLDS `DVD+/-RW DU-8A5LH` | 1024 MiB | SATA 1.5 Gbps | Optical drive |
+| GPU | Quadro P2000 | — | PCIe x16, negotiating 2.5 GT/s | Passed through to a guest via `vfio-pci` |
+| GPU | GeForce GT 710 | — | PCIe x1 @ 5 GT/s | Host console, firmware primary display |
+
+Both ZFS pools are single-disk vdevs with `ashift=12` and no redundancy, and the host boots from a single EFI System Partition on the NVMe. Six of the eight AHCI SATA ports and three PCIe root ports are free, so a second 4 TB HDD and a second NVMe are both physically possible; neither is installed.
+
 ## Addressing and network
 
 All Proxmox guest addresses below are configured on **VLAN 40**, `10.0.40.0/24`. Guest NICs are untagged on `vmbr0`; the PVE uplink must carry VLAN 40 as its native/access network. The gateway is `10.0.40.1`.
@@ -61,7 +75,7 @@ Kubernetes uses `10.42.0.0/16` for pod addresses and `10.43.0.0/16` for service 
 
 Each worker has a dedicated data disk intended for the Talos `local-path` user volume at `/var/mnt/local-path-provisioner`. App-cluster config/state PVCs use the node-local `local-path` StorageClass (`ReadWriteOnce`, `Retain`). These volumes are not replicated and do not fail over with a worker. No verified off-host backup/restore process for these PVCs is recorded here; confirm one before treating the data as protected.
 
-The Proxmox host's storage pools are single-host storage, not shared cluster storage. A single-disk pool has no redundancy. PBS installation and backup-job configuration are separate from the current LXC target.
+The Proxmox host's storage pools are single-host storage, not shared cluster storage. Both ZFS pools — `rpool` behind `local-nvme` and `slow` behind `local-hdd` — are single-disk vdevs with no redundancy, and the host boots from one EFI System Partition on the NVMe, so losing that disk ends the installation regardless of pool contents. Mirroring a second disk into either pool is documented but not performed; see the [hardware inventory](https://github.com/fabricesemti80/home-dc-proxmox/blob/main/docs/hardware.md). PBS installation and backup-job configuration are separate from the current LXC target.
 
 ## DNS, ingress, and external access
 
