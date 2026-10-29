@@ -2,7 +2,9 @@
 
 This repository is the central, documentation-only view of the homelab. It does not provision or configure infrastructure. The diagram shows ownership and runtime relationships; tables below hold the authoritative addresses and operational detail.
 
-[Open the current architecture diagram](docs/architecture.html)
+## Logical overview
+
+![Home DC architecture: repository ownership, Proxmox guests, Kubernetes clusters, and service dependencies](docs/architecture.svg)
 
 ## Repository ownership
 
