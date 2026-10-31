@@ -84,7 +84,7 @@ The Proxmox host's storage pools are single-host storage, not shared cluster sto
 
 ## Secrets and state
 
-- The Proxmox Ansible role stores its API-token secret in the 1Password `iac` vault. OpenTofu reads the token through the local `scripts/tofu.sh` wrapper; no credential values belong in Git.
+- The Proxmox Ansible roles read the Gmail alert password from, and store the PVE API-token secret in, Doppler project `home-dc-proxmox` (config `prd`), using a config-scoped service token held in the operator's macOS Keychain. OpenTofu reads its own copy of the PVE token from project `home-dc-terraform` (config `prd`) through the local `scripts/tofu.sh` wrapper, so the two copies must be rotated together; no credential values belong in Git.
 - The Cloudflare OpenTofu tasks use Doppler project/config `home-dc-kubernetes/dev` for provider inputs. Tunnel credentials are written to the `apps` and `infra` configs.
 - Kubernetes uses SOPS/age for encrypted Git-stored secrets and the Doppler operator for runtime secret synchronization. Local kubeconfigs, Talos identity material, and private keys remain ignored/local-only.
 - OpenTofu states and saved plans are local, Git-ignored files in their owning roots. `home-dc-terraform/state-archive/` contains historical snapshots only; active roots do not load that archive. Never copy or apply an archived state as the current state.
