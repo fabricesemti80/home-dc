@@ -121,7 +121,7 @@
     <text x="428" y="325" text-anchor="middle" class="tag mono">GUESTS</text>
     <text x="396" y="352" class="node-name">PVE guests</text>
     <text x="396" y="375" class="sublabel mono">1 controller · 3 worker VMs</text>
-    <text x="396" y="393" class="sublabel mono">PBS target LXC · smoke LXC</text>
+    <text x="396" y="393" class="sublabel mono">PBS target LXC</text>
 
     <rect x="680" y="472" width="256" height="136" rx="6" fill="var(--surface)" stroke="var(--border)"/>
     <rect x="692" y="484" width="100" height="18" rx="2" fill="none" stroke="var(--border)"/>

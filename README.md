@@ -23,8 +23,8 @@ This repository is the central, documentation-only view of the homelab. It does 
 - **Proxmox:** one standalone Proxmox VE 9 host, `pve-00`. It is not a Proxmox cluster. There is no Ceph, PVE HA, or configured scheduled backup job. Ansible configures the host; OpenTofu creates its guests.
 - **App cluster:** Talos VMs on `pve-00`, one controller and three workers. Argo CD is the hub and manages both the app cluster and the separate infra cluster.
 - **Infra cluster:** two physical Talos nodes, independent of Proxmox guest rebuilds. It remains managed by the app-cluster Argo CD hub; do not reprovision it as part of an app-cluster rebuild.
-- **Guest inventory:** OpenTofu declares smoke LXC 4019, PBS-target LXC 4020, controller VM 4090, and worker VMs 4095–4097. The configured inventory is not a health check; verify actual guest state in Proxmox and Kubernetes before operational changes.
-- **PBS status:** LXC 4020 is configured as a Debian container target. The OpenTofu root does not run the Community Scripts installer, install PBS, or configure its datastore. Do not treat this LXC as a functioning backup server until those steps are completed and verified.
+- **Guest inventory:** OpenTofu declares PBS-target LXC 4020, controller VM 4090, and worker VMs 4095–4097. The configured inventory is not a health check; verify actual guest state in Proxmox and Kubernetes before operational changes.
+- **PBS status:** LXC 4020 remains an unconfigured Debian target until `task pbs-apply` deploys its Debian 13 base and `home-dc-terraform/scripts/configure-pbs.sh` is run inside it. The script configures a NAS-backed datastore and PBS accounts. Verify the service and a test backup before relying on it; no scheduled backup job is configured.
 
 ## Physical hardware
 
@@ -35,7 +35,7 @@ The PVE host is a Dell Precision 7820 Tower (board `0G7W4R`, revision `A00`) on 
 | NVMe | Samsung `MZVKW1T0HMLH-000L7` | 953.9 GiB | PCIe x4 @ 8 GT/s via Intel VMD | Boot device and sole member of ZFS pool `rpool` |
 | HDD | HGST `HDS724040ALE640` | 3.6 TiB (4 TB) | SATA 6 Gbps, 512e | Sole member of ZFS pool `slow` |
 | Optical | PLDS `DVD+/-RW DU-8A5LH` | 1024 MiB | SATA 1.5 Gbps | Optical drive |
-| GPU | Quadro P2000 | — | PCIe x16, negotiating 2.5 GT/s | Passed through to a guest via `vfio-pci` |
+| GPU | Quadro P2000 | — | PCIe x16 link, 8 GT/s capable (2.5 GT/s when last sampled, unloaded) | Passed through to a guest via `vfio-pci` |
 | GPU | GeForce GT 710 | — | PCIe x1 @ 5 GT/s | Host console, firmware primary display |
 
 Both ZFS pools are single-disk vdevs with `ashift=12` and no redundancy, and the host boots from a single EFI System Partition on the NVMe. Six of the eight AHCI SATA ports and three PCIe root ports are free, so a second 4 TB HDD and a second NVMe are both physically possible; neither is installed.
@@ -47,9 +47,7 @@ All Proxmox guest addresses below are configured on **VLAN 40**, `10.0.40.0/24`.
 | Endpoint | VMID | Address | Notes |
 | --- | ---: | --- | --- |
 | NAS | — | `10.0.40.2` | NFS; includes `/media` and Proxmox template/ISO/backup exports |
-| Smoke LXC | 4019 | `10.0.40.19/24` | Debian test container |
-| PBS-target LXC | 4020 | `10.0.40.20/24` | Debian target only; PBS installation is separate |
-| Technitium DNS | — | `10.0.40.53` | Internal `krapulax.home` zone |
+| PBS LXC | 4020 | `10.0.40.20/24` | Debian 13 target; post-deployment setup uses the NAS PBS export |
 | Talos controller `k8s-ctrl-01` | 4090 | `10.0.40.90` | Proxmox `local-nvme` |
 | Talos worker `k8s-wrkr-01-gpu` | 4095 | `10.0.40.95` | P2000 passthrough; Proxmox `local-hdd` |
 | Talos worker `k8s-wrkr-02` | 4096 | `10.0.40.96` | Proxmox `local-hdd` |
