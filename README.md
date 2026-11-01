@@ -11,7 +11,7 @@ This repository is the central, documentation-only view of the homelab. It does 
 | Repository | Owns | Does not own | Main entrypoints |
 | --- | --- | --- | --- |
 | [`home-dc-proxmox`](https://github.com/fabricesemti80/home-dc-proxmox) | Ansible configuration of the single PVE host `pve-00`: packages, storage, NFS, GPU passthrough, alerts/mail, and PVE API credentials | Guest VM/LXC creation; Kubernetes configuration; cluster HA/Ceph | `task plan`, `task apply`, `task reboot` |
-| [`home-dc-terraform`](https://github.com/fabricesemti80/home-dc-terraform) | OpenTofu lifecycle of Proxmox guest VMs/LXCs; Cloudflare Tunnels and Zero Trust Access | PVE host configuration; Talos/Kubernetes configuration or bootstrap; local DNS | `task tf:init`, `task tf:plan`, `task tf:apply`; per-root `proxmox:tf:*`, `cloudflare:tf:*` |
+| [`home-dc-terraform`](https://github.com/fabricesemti80/home-dc-terraform) | OpenTofu lifecycle of Proxmox guest VMs/LXCs; Cloudflare Tunnels and Zero Trust Access | PVE host configuration; Talos/Kubernetes configuration or bootstrap; local DNS | `task init`, `task plan`, `task apply`; per-root `proxmox:*`, `cloudflare:*` |
 | [`home-dc-kubernetes`](https://github.com/fabricesemti80/home-dc-kubernetes) | Talos configuration and app-cluster bootstrap; the separate physical Talos `infra-cluster`; Kubernetes manifests and Argo CD GitOps for both clusters | PVE host configuration; Proxmox guest lifecycle; OpenTofu roots/state | `task validate`, `task talos:app:bootstrap` (fresh app cluster only), `task infrastructure:verify` |
 | [`homelab-terraform-unifi`](../homelab-terraform-unifi/) | Separate UniFi/network configuration | Current local DNS authority | Its own Taskfile; check that repository before network changes |
 | `home-dc` (this repository) | Central current-state documentation and diagram | Any infrastructure changes | Read this guide and the linked owner repository before acting |
@@ -96,7 +96,7 @@ The Proxmox host's storage pools are single-host storage, not shared cluster sto
 3. **Fresh app-cluster bootstrap only:** From `home-dc-kubernetes`, `task talos:app:bootstrap` is a one-time fresh-cluster workflow. Do not rerun it against an existing etcd cluster. Follow the repo's installation guide for Cilium, platform bootstrap, and verification.
 4. **Routine workloads:** Change Kubernetes manifests in `home-dc-kubernetes`, review/merge to `main`, and let Argo CD reconcile. Do not use Terraform or Ansible to deploy applications.
 
-Root Terraform tasks `task tf:init/plan/apply` run both active roots; namespaced `proxmox:tf:*` and `cloudflare:tf:*` tasks target one root. Run `task --list` in each repository for the current full task surface.
+Root Terraform tasks `task init`, `task plan`, and `task apply` run both active roots; namespaced `proxmox:*` and `cloudflare:*` tasks target one root. Run `task --list` in each repository for the current full task surface.
 
 ## Operational constraints
 
