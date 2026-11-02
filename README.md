@@ -84,8 +84,16 @@ The Proxmox host's storage pools are single-host storage, not shared cluster sto
 
 ## Secrets and state
 
+This repository holds no secrets or environment variables. Each owner repository keeps the authoritative inventory of its secrets, their Doppler sources and their consumers:
+
+| Repository | Inventory |
+| --- | --- |
+| `home-dc-proxmox` | [`docs/secrets-and-env-vars.md`](https://github.com/fabricesemti80/home-dc-proxmox/blob/main/docs/secrets-and-env-vars.md) |
+| `home-dc-terraform` | [`docs/secrets-and-env-vars.md`](https://github.com/fabricesemti80/home-dc-terraform/blob/main/docs/secrets-and-env-vars.md) |
+| `home-dc-kubernetes` | [`docs/secrets-and-env-vars.md`](https://github.com/fabricesemti80/home-dc-kubernetes/blob/main/docs/secrets-and-env-vars.md) |
+
 - The Proxmox Ansible roles read the Gmail alert password from, and store the PVE API-token secret in, Doppler project `home-dc-proxmox` (config `prd`), using a config-scoped service token held in the operator's macOS Keychain. OpenTofu reads its own copy of the PVE token from project `home-dc-terraform` (config `prd`) through the local `scripts/tofu.sh` wrapper, so the two copies must be rotated together; no credential values belong in Git.
-- The Cloudflare OpenTofu tasks use Doppler project/config `home-dc-kubernetes/dev` for provider inputs. Tunnel credentials are written to the `apps` and `infra` configs.
+- The Cloudflare OpenTofu tasks use Doppler project/config `home-dc-terraform/prd` for provider inputs. Tunnel credentials, IDs and tokens are written there, and `home-dc-kubernetes/apps` and `infra` reference them across projects.
 - Kubernetes uses SOPS/age for encrypted Git-stored secrets and the Doppler operator for runtime secret synchronization. Local kubeconfigs, Talos identity material, and private keys remain ignored/local-only.
 - OpenTofu states and saved plans are local, Git-ignored files in their owning roots. `home-dc-terraform/state-archive/` contains historical snapshots only; active roots do not load that archive. Never copy or apply an archived state as the current state.
 
