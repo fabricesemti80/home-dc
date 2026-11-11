@@ -37,15 +37,15 @@
   <g fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M320 198 H392" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
     <path d="M320 298 H392" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M320 414 H668 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M320 414 H656 V350 H668" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
     <path d="M520 230 V258" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
     <path d="M704 398 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M908 510 H1080 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M908 536 H1072 V574" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M908 310 H1040 V454 H1080" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M908 526 H960 V388 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M1080 560 H1032 V404 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
     <path d="M888 326 H1000 V214 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
-    <path d="M888 350 H984 V574 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
-    <path d="M908 336 H960 V384 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
-    <path d="M908 558 H972 V618 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M1200 454 V276 H1224 V264" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M888 374 H1008 V618 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
   </g>
 
   <!-- Repository ownership. -->
@@ -110,12 +110,12 @@
   <g class="label mono">
     <text x="332" y="188" textLength="58" lengthAdjust="spacingAndGlyphs">HOST</text>
     <text x="332" y="288" textLength="58" lengthAdjust="spacingAndGlyphs">GUESTS</text>
-    <text x="480" y="406" textLength="140" lengthAdjust="spacingAndGlyphs">GITOPS SOURCE</text>
+    <text x="482" y="406" textLength="140" lengthAdjust="spacingAndGlyphs">GITOPS SOURCE</text>
     <text x="724" y="438" textLength="86" lengthAdjust="spacingAndGlyphs">RECONCILES</text>
-    <text x="936" y="502" textLength="76" lengthAdjust="spacingAndGlyphs">MANAGES</text>
-    <text x="930" y="331" textLength="100" lengthAdjust="spacingAndGlyphs">PUBLIC TUNNEL</text>
-    <text x="930" y="382" textLength="100" lengthAdjust="spacingAndGlyphs">SHARED MEDIA</text>
-    <text x="930" y="468" textLength="100" lengthAdjust="spacingAndGlyphs">NFS BACKUP</text>
+    <text x="930" y="420" textLength="76" lengthAdjust="spacingAndGlyphs">MANAGES</text>
+    <text x="930" y="331" textLength="100" lengthAdjust="spacingAndGlyphs">APP TUNNEL</text>
+    <text x="930" y="382" textLength="100" lengthAdjust="spacingAndGlyphs">APP BACKUP</text>
+    <text x="1090" y="298" textLength="100" lengthAdjust="spacingAndGlyphs">INFRA TUNNEL</text>
     <text x="930" y="590" textLength="88" lengthAdjust="spacingAndGlyphs">RFC2136 DNS</text>
   </g>
   <g class="small mono">
