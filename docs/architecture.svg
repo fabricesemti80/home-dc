@@ -1,163 +1,126 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="home-dc-architecture-title home-dc-architecture-desc">
-  <title id="home-dc-architecture-title">Home DC architecture — one host, two clusters, clear ownership</title>
-  <desc id="home-dc-architecture-desc">Three repositories own Proxmox host configuration, guest provisioning, and Kubernetes GitOps. One Proxmox host runs the app-cluster guests, while Cloudflare and LAN services connect to the app and physical infrastructure clusters.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 760" role="img" aria-labelledby="home-dc-architecture-title home-dc-architecture-desc">
+  <title id="home-dc-architecture-title">Home DC architecture — repository ownership and live services</title>
+  <desc id="home-dc-architecture-desc">Ansible configures standalone Proxmox host pve-00, OpenTofu provisions four app-cluster guests, and one app-cluster Argo CD manages both Kubernetes clusters. Longhorn stores app state; the infra cluster remains node-local. NAS holds shared media and Backrest backups. Internal DNS uses Technitium; optional public routes use Cloudflare tunnels.</desc>
   <style>
-    :root {
-      --fg: #2d3142;
-      --muted: #4f5d75;
-      --border: #bfc0c0;
-      --surface: #f5f5f5;
-      --accent: #bf4520;
-      --c1: #2e5aa8;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --fg: #f5f5f5;
-        --muted: #bfc0c0;
-        --border: #737b8e;
-        --surface: #252832;
-        --accent: #f08a59;
-        --c1: #86a8f5;
-      }
-    }
-    text { font-family: system-ui, sans-serif; fill: var(--fg); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-    .eyebrow { font-size: 11px; letter-spacing: 1.8px; fill: var(--muted); }
-    .page-title { font-size: 28px; font-weight: 650; }
-    .page-subtitle { font-size: 13px; fill: var(--muted); }
-    .zone-label { font-size: 10px; font-weight: 600; letter-spacing: 1.3px; fill: var(--muted); }
-    .tag { font-size: 10px; font-weight: 600; letter-spacing: 1px; fill: var(--muted); }
-    .node-name { font-size: 16px; font-weight: 650; }
-    .sublabel { font-size: 12px; fill: var(--muted); }
-    .connector-label { font-size: 10px; fill: var(--muted); }
-    .legend { font-size: 11px; fill: var(--muted); }
+    :root { --fg:#2d3142; --muted:#4f5d75; --border:#bfc0c0; --surface:#f5f5f5; --accent:#bf4520; --c1:#2e5aa8; }
+    @media (prefers-color-scheme:dark) { :root { --fg:#f5f5f5; --muted:#bfc0c0; --border:#737b8e; --surface:#252832; --accent:#f08a59; --c1:#86a8f5; } }
+    text { font-family:system-ui,sans-serif; fill:var(--fg); }
+    .mono { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .eyebrow { font-size:11px; letter-spacing:1.8px; fill:var(--muted); }
+    .title { font-size:27px; font-weight:650; }
+    .subtitle { font-size:13px; fill:var(--muted); }
+    .zone { font-size:10px; font-weight:600; letter-spacing:1.2px; fill:var(--muted); }
+    .name { font-size:15px; font-weight:650; }
+    .small { font-size:11px; fill:var(--muted); }
+    .label { font-size:10px; fill:var(--muted); }
   </style>
   <defs>
     <marker id="arrow-control" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6 Z" fill="var(--muted)"/></marker>
-    <marker id="arrow-traffic" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6 Z" fill="var(--c1)"/></marker>
+    <marker id="arrow-data" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6 Z" fill="var(--c1)"/></marker>
   </defs>
+  <text x="40" y="34" class="eyebrow mono">HOME DC · VERIFIED CURRENT TOPOLOGY</text>
+  <text x="40" y="70" class="title">One host · two clusters · explicit ownership</text>
+  <text x="40" y="96" class="subtitle">Argo CD runs on app-cluster and manages both clusters; infra-cluster remains physical and node-local.</text>
 
-  <text x="40" y="34" class="eyebrow mono">HOME DC · CURRENT OWNERSHIP</text>
-  <text x="40" y="70" class="page-title">One host, two clusters, clear ownership</text>
-  <text x="40" y="96" class="page-subtitle">Host configuration, guest provisioning, GitOps, and service dependencies have separate owners.</text>
-
-  <!-- Three zones: repository ownership, PVE/Talos runtime, and edge/physical infrastructure. -->
-  <g fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4">
-    <rect x="40" y="120" width="292" height="496" rx="8"/>
-    <rect x="360" y="120" width="600" height="496" rx="8"/>
-    <rect x="984" y="120" width="256" height="496" rx="8"/>
+  <g fill="none" stroke="var(--border)" stroke-dasharray="4 4">
+    <rect x="40" y="120" width="300" height="508" rx="8"/>
+    <rect x="368" y="120" width="650" height="508" rx="8"/>
+    <rect x="1046" y="120" width="354" height="508" rx="8"/>
   </g>
-  <g class="zone-label mono">
-    <rect x="52" y="124" width="178" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="60" y="137">REPOSITORY OWNERSHIP</text>
-    <rect x="372" y="124" width="194" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="380" y="137">PROXMOX + TALOS RUNTIME</text>
-    <rect x="996" y="124" width="190" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="1004" y="137">EDGE + PHYSICAL CLUSTER</text>
+  <g class="zone mono">
+    <rect x="52" y="124" width="180" height="18" fill="var(--surface)" stroke="none"/><text x="60" y="137">REPOSITORIES</text>
+    <rect x="380" y="124" width="216" height="18" fill="var(--surface)" stroke="none"/><text x="388" y="137">HOST · GUESTS · APP CLUSTER</text>
+    <rect x="1058" y="124" width="248" height="18" fill="var(--surface)" stroke="none"/><text x="1066" y="137">PHYSICAL INFRA · SHARED SERVICES</text>
   </g>
 
-  <!-- Ownership and traffic relationships, behind the nodes. -->
+  <!-- Ownership, GitOps, and runtime service dependencies. -->
   <g fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M316 208 H384" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M316 352 H384" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M316 524 H680" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M508 252 V300" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M632 352 H656 V440 H760 V472" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M936 552 H1008" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
-    <path d="M1216 216 H1228 V440 H900 V472" stroke="var(--c1)" marker-end="url(#arrow-traffic)"/>
-    <path d="M1216 240 H1244 V524 H1216" stroke="var(--c1)" marker-end="url(#arrow-traffic)"/>
-    <path d="M1008 352 H840 V472" stroke="var(--c1)" marker-end="url(#arrow-traffic)"/>
+    <path d="M320 198 H392" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M320 298 H392" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M320 414 H668 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M520 230 V258" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M704 398 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M908 510 H1080 V454" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M908 536 H1072 V574" stroke="var(--muted)" marker-end="url(#arrow-control)"/>
+    <path d="M888 326 H1000 V214 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M888 350 H984 V574 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M908 336 H960 V384 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
+    <path d="M908 558 H972 V618 H1080" stroke="var(--c1)" marker-end="url(#arrow-data)"/>
   </g>
 
-  <!-- Connector labels. -->
-  <g class="connector-label mono" text-anchor="middle">
-    <rect x="320" y="184" width="68" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="354" y="197">HOST ONLY</text>
-    <rect x="328" y="328" width="52" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="354" y="341">GUESTS</text>
-    <rect x="432" y="500" width="132" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="498" y="513">TALOS + GITOPS</text>
-    <rect x="1132" y="416" width="92" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="1178" y="429">APP TUNNEL</text>
-    <rect x="1148" y="448" width="92" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="1194" y="461">INFRA TUNNEL</text>
-    <rect x="844" y="416" width="64" height="18" rx="2" fill="var(--surface)" stroke="none"/>
-    <text x="876" y="429">LAN DATA</text>
-  </g>
-
-  <!-- Repository owners. -->
+  <!-- Repository ownership. -->
   <g stroke-width="1">
-    <rect x="56" y="164" width="260" height="88" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="68" y="176" width="78" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="107" y="189" text-anchor="middle" class="tag mono">ANSIBLE</text>
-    <text x="68" y="216" class="node-name">home-dc-proxmox</text>
-    <text x="68" y="238" class="sublabel mono">PVE host configuration only</text>
-
-    <rect x="56" y="300" width="260" height="104" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
-    <rect x="68" y="312" width="88" height="18" rx="2" fill="none" stroke="var(--accent)"/>
-    <text x="112" y="325" text-anchor="middle" class="tag mono" style="fill:var(--accent)">OPENTOFU</text>
-    <text x="68" y="352" class="node-name">home-dc-terraform</text>
-    <text x="68" y="375" class="sublabel mono">Proxmox guests · Cloudflare</text>
-    <text x="68" y="393" class="sublabel mono">two independent roots</text>
-
-    <rect x="56" y="472" width="260" height="104" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="68" y="484" width="64" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="100" y="497" text-anchor="middle" class="tag mono">GITOPS</text>
-    <text x="68" y="524" class="node-name">home-dc-kubernetes</text>
-    <text x="68" y="547" class="sublabel mono">Talos · bootstrap · GitOps</text>
-    <text x="68" y="565" class="sublabel mono">Argo CD source on main</text>
+    <rect x="56" y="164" width="264" height="68" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="68" y="192" class="name">home-dc-proxmox</text><text x="68" y="214" class="small mono">Ansible · PVE host only</text>
+    <rect x="56" y="264" width="264" height="68" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="68" y="292" class="name">home-dc-terraform</text><text x="68" y="314" class="small mono">OpenTofu · guests + Cloudflare</text>
+    <rect x="56" y="380" width="264" height="68" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="68" y="408" class="name">home-dc-kubernetes</text><text x="68" y="430" class="small mono">Talos · manifests · Argo CD GitOps</text>
+    <rect x="56" y="496" width="264" height="68" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="68" y="524" class="name">home-dc</text><text x="68" y="546" class="small mono">Documentation only</text>
+    <text x="56" y="602" class="small mono">home-kestra: separate, operator-initiated workflows;</text>
+    <text x="56" y="618" class="small mono">not a current dependency of pve-00 or either cluster.</text>
   </g>
 
-  <!-- Runtime and shared-service nodes. -->
+  <!-- Proxmox host and app-cluster runtime. -->
   <g stroke-width="1">
-    <rect x="384" y="164" width="248" height="88" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="396" y="176" width="82" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="437" y="189" text-anchor="middle" class="tag mono">COMPUTE</text>
-    <text x="396" y="216" class="node-name">pve-00 · Proxmox VE 9</text>
-    <text x="396" y="238" class="sublabel mono">single host · no HA/Ceph</text>
-
-    <rect x="384" y="300" width="248" height="104" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="396" y="312" width="64" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="428" y="325" text-anchor="middle" class="tag mono">GUESTS</text>
-    <text x="396" y="352" class="node-name">PVE guests</text>
-    <text x="396" y="375" class="sublabel mono">1 controller · 3 worker VMs</text>
-    <text x="396" y="393" class="sublabel mono">PBS target LXC</text>
-
-    <rect x="680" y="472" width="256" height="136" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="692" y="484" width="100" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="742" y="497" text-anchor="middle" class="tag mono">TALOS · APP</text>
-    <text x="692" y="524" class="node-name">app-cluster</text>
-    <text x="692" y="547" class="sublabel mono">1 controller + 3 workers</text>
-    <text x="692" y="570" class="sublabel mono">Argo CD hub · API VIP .101</text>
-    <text x="692" y="593" class="sublabel mono">worker-local PVCs + NAS media</text>
-
-    <rect x="1008" y="472" width="208" height="104" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="1020" y="484" width="108" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="1074" y="497" text-anchor="middle" class="tag mono">TALOS · INFRA</text>
-    <text x="1020" y="524" class="node-name">infra-cluster</text>
-    <text x="1020" y="547" class="sublabel mono">2 physical Talos nodes</text>
-    <text x="1020" y="565" class="sublabel mono">managed by app-cluster Argo</text>
-
-    <rect x="1008" y="164" width="208" height="104" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="1020" y="176" width="156" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="1098" y="189" text-anchor="middle" class="tag mono">TF · TUNNELS / ACCESS</text>
-    <text x="1020" y="216" class="node-name">Cloudflare</text>
-    <text x="1020" y="238" class="sublabel mono">public DNS · 2 tunnels</text>
-    <text x="1020" y="256" class="sublabel mono">Access policies</text>
-
-    <rect x="1008" y="300" width="208" height="104" rx="6" fill="var(--surface)" stroke="var(--border)"/>
-    <rect x="1020" y="312" width="48" height="18" rx="2" fill="none" stroke="var(--border)"/>
-    <text x="1044" y="325" text-anchor="middle" class="tag mono">LAN</text>
-    <text x="1020" y="352" class="node-name">Technitium + NAS</text>
-    <text x="1020" y="375" class="sublabel mono">DNS .53 · media/NFS .2</text>
-    <text x="1020" y="393" class="sublabel mono">local DNS · storage</text>
+    <rect x="392" y="164" width="256" height="66" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="408" y="192" class="name">pve-00 · standalone PVE 9</text><text x="408" y="214" class="small mono">one physical host · no PVE HA/Ceph</text>
+    <rect x="392" y="258" width="256" height="140" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="408" y="284" class="name">App-cluster Talos VMs</text>
+    <text x="408" y="308" class="small mono">k8s-ctrl-01 · 1 controller</text>
+    <text x="408" y="330" class="small mono">k8s-wrkr-01-gpu · GPU</text>
+    <text x="408" y="352" class="small mono">k8s-wrkr-02 · worker</text>
+    <text x="408" y="374" class="small mono">k8s-wrkr-03 · worker</text>
+    <rect x="668" y="258" width="240" height="140" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="684" y="284" class="name">App-cluster services</text>
+    <text x="684" y="308" class="small mono">Argo CD hub · both clusters</text>
+    <text x="684" y="330" class="small mono">Longhorn · 3 replicas · longhorn</text>
+    <text x="684" y="352" class="small mono">Doppler operator · apps config</text>
+    <text x="684" y="374" class="small mono">envoy-internal · .102</text>
+    <rect x="668" y="454" width="240" height="152" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="684" y="480" class="name">App-cluster persistent data</text>
+    <text x="684" y="504" class="small mono">Longhorn: app config + state</text>
+    <text x="684" y="526" class="small mono">NFS: media library + Backrest target</text>
+    <text x="684" y="548" class="small mono">NAS target mounts at /backups</text>
+    <text x="684" y="582" class="small mono">Immich originals: NAS /media</text>
   </g>
 
-  <!-- Legend. -->
-  <g class="legend mono">
-    <path d="M56 680 H112" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#arrow-control)"/>
-    <text x="128" y="684">OWNERSHIP / CONTROL</text>
-    <path d="M424 680 H480" stroke="var(--c1)" stroke-width="1.4" marker-end="url(#arrow-traffic)"/>
-    <text x="496" y="684">TRAFFIC / SERVICE DEPENDENCY</text>
+  <!-- Infra, shared services, and external edge. -->
+  <g stroke-width="1">
+    <rect x="1080" y="164" width="288" height="100" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="1096" y="190" class="name">Cloudflare · public opt-in</text>
+    <text x="1096" y="214" class="small mono">krapulax.dev via Tunnel only</text>
+    <text x="1096" y="238" class="small mono">tunnel → envoy-external</text>
+    <rect x="1080" y="300" width="288" height="116" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="1096" y="326" class="name">NAS · 10.0.40.2</text>
+    <text x="1096" y="350" class="small mono">/media · shared library + originals</text>
+    <text x="1096" y="372" class="small mono">/k8s-backup · Backrest destination</text>
+    <text x="1096" y="396" class="small mono">mounted by Backrest at /backups</text>
+    <rect x="1080" y="454" width="288" height="126" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="1096" y="480" class="name">Infra-cluster · physical Talos</text>
+    <text x="1096" y="504" class="small mono">infra-cp-01 + infra-wk-01</text>
+    <text x="1096" y="526" class="small mono">app-cluster Argo CD manages it</text>
+    <text x="1096" y="550" class="small mono">node-local hostPath / local-path</text>
+    <text x="1096" y="570" class="small mono">infra Backrest · Doppler infra config</text>
+    <rect x="1080" y="596" width="288" height="44" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="1096" y="624" class="small mono">Technitium · ExternalDNS → .home</text>
+  </g>
+
+  <g class="label mono">
+    <text x="332" y="188" textLength="58" lengthAdjust="spacingAndGlyphs">HOST</text>
+    <text x="332" y="288" textLength="58" lengthAdjust="spacingAndGlyphs">GUESTS</text>
+    <text x="480" y="406" textLength="140" lengthAdjust="spacingAndGlyphs">GITOPS SOURCE</text>
+    <text x="724" y="438" textLength="86" lengthAdjust="spacingAndGlyphs">RECONCILES</text>
+    <text x="936" y="502" textLength="76" lengthAdjust="spacingAndGlyphs">MANAGES</text>
+    <text x="930" y="331" textLength="100" lengthAdjust="spacingAndGlyphs">PUBLIC TUNNEL</text>
+    <text x="930" y="382" textLength="100" lengthAdjust="spacingAndGlyphs">SHARED MEDIA</text>
+    <text x="930" y="468" textLength="100" lengthAdjust="spacingAndGlyphs">NFS BACKUP</text>
+    <text x="930" y="590" textLength="88" lengthAdjust="spacingAndGlyphs">RFC2136 DNS</text>
+  </g>
+  <g class="small mono">
+    <path d="M56 700 H104" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#arrow-control)"/><text x="120" y="704">OWNERSHIP / CONTROL</text>
+    <path d="M360 700 H408" stroke="var(--c1)" stroke-width="1.4" marker-end="url(#arrow-data)"/><text x="424" y="704">DATA / SERVICE DEPENDENCY</text>
+    <text x="880" y="704">Status verified 2026-11-11 · no restore test performed</text>
   </g>
 </svg>
